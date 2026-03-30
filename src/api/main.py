@@ -10,7 +10,7 @@ redis_client = redis.Redis(host=os.getenv("REDIS_HOST"), port=6379)
 
 def get_db_connection():
     return psycopg2.connect(
-        host=os.getenv("POSTGRES_HOST"),
+        host="postgres",
         database=os.getenv("POSTGRES_DB"),
         user=os.getenv("POSTGRES_USER"),
         password=os.getenv("POSTGRES_PASSWORD")
@@ -21,7 +21,6 @@ def notify(user_id: int, message: str):
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # 1. Guardar en DB
     cur.execute(
         "INSERT INTO notifications (user_id, message, status) VALUES (%s, %s, %s) RETURNING id;",
         (user_id, message, "pending")
@@ -32,7 +31,6 @@ def notify(user_id: int, message: str):
     cur.close()
     conn.close()
 
-    # 2. Enviar a Redis
     payload = {
         "id": notification_id,
         "user_id": user_id,
